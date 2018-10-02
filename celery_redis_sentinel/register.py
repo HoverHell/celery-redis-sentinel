@@ -35,7 +35,7 @@ def get_class_path(cls):
     return '{}.{}'.format(cls.__module__, cls.__name__)
 
 
-def register(alias='redis-sentinel'):
+def register(alias='redis-sentinel-via-consul'):
     """
     Function to register sentinel transport and results backend
     into Celery's registry
@@ -49,8 +49,8 @@ def register(alias='redis-sentinel'):
     alias : str, optional
         Alias name to use for the sentinel support.
         This is the host name which will be used in the celery config
-        (e.g. ``redis-sentinel://localhost``).
-        By default ``'redis-sentinel'`` is used.
+        (e.g. ``redis-sentinel-via-consul://localhost``).
+        By default ``'redis-sentinel-via-consul'`` is used.
     """
     # broker
     TRANSPORT_ALIASES[alias] = get_class_path(SentinelTransport)

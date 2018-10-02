@@ -1,6 +1,11 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, print_function, unicode_literals
 
+try:
+    import consulate
+except ImportError:
+    consulate = None
+
 from celery.backends.redis import RedisBackend
 from kombu.utils import cached_property
 import celery
@@ -32,6 +37,10 @@ class RedisSentinelBackend(RedisBackend):
                               ('192.168.1.3', 26379)],
                 'service_name': 'master',
                 'socket_timeout': 0.1,
+                # required kwargs
+                'use_consul': True,
+                'sentinel_port': 26379,
+                'consul_ip_addr': 'localhost',
             }
     """
 
@@ -43,11 +52,15 @@ class RedisSentinelBackend(RedisBackend):
         self.sentinels = self.transport_options['sentinels']
         self.service_name = self.transport_options['service_name']
         self.socket_timeout = self.transport_options.get('socket_timeout', 0.1)
+        self.use_consul = self.transport_options.get('use_consul', False)
+        self.sentinel_port = self.transport_options.get('sentinel_port', 26379)
+        self.consul_ip_addr = self.transport_options.get('consul_ip_addr', 'localhost')
 
-    @cached_property
+    # @cached_property
     def client(self):
         """
-        Cached property for getting ``Redis`` client to be used to interact with redis.
+        #Cached property for getting ``Redis`` client to be used to interact with redis.
+        Not sure if it is ok to cache client, because 
 
         Returned client also subclasses from :class:`.EnsuredRedisMixin` which
         ensures that all redis commands are executed with retry logic in case
@@ -60,10 +73,18 @@ class RedisSentinelBackend(RedisBackend):
         """
         params = self.connparams
         params.update({
-            'sentinels': self.sentinels,
             'service_name': self.service_name,
             'socket_timeout': self.socket_timeout,
         })
+        if self.use_consul and consulate is not None:
+            consul = consulate.Consul(host=self.consul_ip_addr)
+            params['sentinels'] = [
+                (node['Address'], self.sentinel_port) for node in consul.catalog.nodes() 
+                if node['Meta'].get('consul_role') == 'server'
+            ]
+        else:
+            params['sentinels'] = self.sentinels
+
         return get_redis_via_sentinel(
             redis_class=type(str('Redis'), (EnsuredRedisMixin, Redis), {}),
             **params

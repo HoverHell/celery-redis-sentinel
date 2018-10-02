@@ -1,6 +1,11 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, print_function, unicode_literals
 
+try:
+    import consulate
+except ImportError:
+    consulate = None
+
 from kombu.transport.redis import Channel, Transport
 from kombu.utils import cached_property
 
@@ -23,18 +28,27 @@ class SentinelChannel(Channel):
                               ('192.168.1.3', 26379)],
                 'service_name': 'master',
                 'socket_timeout': 0.1,
+                # required kwargs
+                'use_consul': True,
+                'sentinel_port': 26379,
+                'consul_ip_addr': 'localhost',
             }
     """
     from_transport_options = Channel.from_transport_options + (
         'sentinels',
         'service_name',
         'socket_timeout',
+        'use_consul',
+        'sentinel_port',
+        'consul_ip_addr',
     )
 
-    @cached_property
+    # @cached_property
     def sentinel_pool(self):
         """
-        Cached property for getting connection pool to redis sentinel.
+        # Cached property for getting connection pool to redis sentinel.
+        Redis Sentinel addresses taken from Consul. So that it is a bad idea
+        to cache this property. The addresses might change from time to time.
 
         In addition to returning connection pool, this property
         changes the ``Transport`` connection details to match the
@@ -48,10 +62,19 @@ class SentinelChannel(Channel):
         """
         params = self._connparams()
         params.update({
-            'sentinels': self.sentinels,
             'service_name': self.service_name,
             'socket_timeout': self.socket_timeout,
         })
+
+        if self.use_consul and consulate is not None:
+            consul = consulate.Consul(host=self.consul_ip_addr)
+            params['sentinels'] = [
+                (node['Address'], self.sentinel_port) for node in consul.catalog.nodes() 
+                if node['Meta'].get('consul_role') == 'server'
+            ]
+        else:
+            params['sentinels'] = self.sentinels
+
         sentinel = get_redis_via_sentinel(
             redis_class=self.Client,
             connection_pool_class=CelerySentinelConnectionPool,
