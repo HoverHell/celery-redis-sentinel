@@ -63,14 +63,14 @@ class SentinelChannel(Channel):
         """
         params = self._connparams()
         params.update({
-            'service_name': self.service_name,
-            'socket_timeout': self.socket_timeout,
+            'service_name': getattr(self, 'service_name', 'mymaster'),
+            'socket_timeout': getattr(self, 'socket_timeout', 0.1),
         })
 
-        if self.use_consul and consulate is not None:
-            consul = consulate.Consul(host=self.consul_ip_addr)
+        if getattr(self, 'use_consul', False) and consulate is not None:
+            consul = consulate.Consul(host=getattr(self, 'consul_ip_addr', 'localhost'))
             params['sentinels'] = [
-                (node['Address'], self.sentinel_port) for node in consul.catalog.nodes() 
+                (node['Address'], getattr(self, 'sentinel_port', 6378)) for node in consul.catalog.nodes() 
                 if node['Meta'].get('consul_role') == 'server'
             ]
         else:
