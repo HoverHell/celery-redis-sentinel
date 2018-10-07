@@ -44,6 +44,7 @@ class SentinelChannel(Channel):
     )
 
     # @cached_property
+    @property
     def sentinel_pool(self):
         """
         # Cached property for getting connection pool to redis sentinel.

@@ -57,6 +57,7 @@ class RedisSentinelBackend(RedisBackend):
         self.consul_ip_addr = self.transport_options.get('consul_ip_addr', 'localhost')
 
     # @cached_property
+    @property
     def client(self):
         """
         #Cached property for getting ``Redis`` client to be used to interact with redis.
