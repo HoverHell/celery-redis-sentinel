@@ -40,8 +40,7 @@ class SentinelChannel(Channel):
         'socket_timeout',
         'use_consul',
         'sentinel_port',
-        'consul_ip_addr',
-    )
+        'consul_ip_addr')
 
     # @cached_property
     @property
