@@ -3,7 +3,7 @@ from __future__ import print_function, unicode_literals
 
 
 __author__ = 'Miroslav Shubernetskiy'
-__version__ = '0.4.2'
+__version__ = '0.4.3'
 
 try:
     from .backend import RedisSentinelBackend  # noqa
