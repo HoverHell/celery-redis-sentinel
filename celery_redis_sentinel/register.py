@@ -35,7 +35,7 @@ def get_class_path(cls):
     return '{}.{}'.format(cls.__module__, cls.__name__)
 
 
-def register(alias='redis-sentinel-via-consul'):
+def register(alias='redis-sentinel'):
     """
     Function to register sentinel transport and results backend
     into Celery's registry

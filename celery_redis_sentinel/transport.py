@@ -66,7 +66,7 @@ class SentinelChannel(Channel):
             'socket_timeout': getattr(self, 'socket_timeout', 0.1),
         })
 
-        if getattr(self, 'use_consul', True) and consulate is not None:
+        if getattr(self, 'use_consul', False) and consulate is not None:
             consul = consulate.Consul(host=getattr(self, 'consul_ip_addr', 'localhost'))
             params['sentinels'] = [
                 (node['Address'], getattr(self, 'sentinel_port', 6378)) for node in consul.catalog.nodes() 
