@@ -208,14 +208,11 @@ def get_redis_via_sentinel(db,
     sentinel = sentinel_class(
         sentinels,
         socket_timeout=socket_timeout,
-    )
+        **kwargs)
     return sentinel.master_for(
         service_name,
         socket_timeout=socket_timeout,
         db=db,
         redis_class=redis_class,
         connection_pool_class=connection_pool_class,
-        # password=kwargs.get('password'),
-        # port=kwargs.get('port'),
-        # # Or just everything:
-        **kwargs)
+    )
