@@ -215,4 +215,7 @@ def get_redis_via_sentinel(db,
         db=db,
         redis_class=redis_class,
         connection_pool_class=connection_pool_class,
-    )
+        # password=kwargs.get('password'),
+        # port=kwargs.get('port'),
+        # # Or just everything:
+        **kwargs)
