@@ -209,6 +209,7 @@ def get_redis_via_sentinel(db,
         sentinels,
         socket_timeout=socket_timeout,
         **kwargs)
+
     return sentinel.master_for(
         service_name,
         socket_timeout=socket_timeout,
